@@ -50,7 +50,7 @@ app.post('/api/posts', async (req, res) => {
 });
 
 app.get('/api/posts', async (req, res) => {
-    const posts = await Post .find().populate('userId', 'email').exec();
+    const posts = await Post.find().populate('userId', 'email').exec();
     res.json(posts);
 });
 
@@ -62,16 +62,53 @@ app.post('/api/profile', async (req, res) => {
     const user = await User.findById(decoded.id);
     if (user) {
         user.bio = bio;
-        if (req.files) {
-            if (req.files.profilePic) {
-                user.profilePic = req.files.profilePic[0].path; // Assuming you handle file uploads
-            }
-            if (req.files.coverPic) {
-                user.coverPic = req.files.coverPic[0].path; // Assuming you handle file uploads
-            }
-        }
         await user.save();
         res.json({ message: 'Profile updated successfully' });
+    } else {
+        res.status(404).json({ message: 'User  not found' });
+    }
+});
+
+app.post('/api/friend/add', async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, 'secret');
+    const { friendId } = req.body;
+
+    const user = await User.findById(decoded.id);
+    const friend = await User.findById(friendId);
+
+    if (user && friend) {
+        user.friends.push(friendId);
+        await user.save();
+        res.json({ message: 'Friend added successfully' });
+    } else {
+        res.status(404).json({ message: 'User  or friend not found' });
+    }
+});
+
+app.post('/api/friend/remove', async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, 'secret');
+    const { friendId } = req.body;
+
+    const user = await User.findById(decoded.id);
+
+    if (user) {
+        user.friends.pull(friendId);
+        await user.save();
+        res.json({ message: 'Friend removed successfully' });
+    } else {
+        res.status(404).json({ message: 'User  not found' });
+    }
+});
+
+app.get('/api/friends', async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, 'secret');
+
+    const user = await User.findById(decoded.id).populate('friends', 'email bio profilePic');
+    if (user) {
+        res .json(user.friends);
     } else {
         res.status(404).json({ message: 'User  not found' });
     }
