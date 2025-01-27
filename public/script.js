@@ -16,7 +16,7 @@ async function register() {
 
 async function login() {
     const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login -password').value;
+    const password = document.getElementById('login-password').value;
 
     const response = await fetch('/api/login', {
         method: 'POST',
@@ -28,6 +28,7 @@ async function login() {
 
     const data = await response.json();
     if (data.success) {
+        localStorage.setItem('token', data.token);
         window.location.href = 'main.html'; // Redirect to main feed
     } else {
         alert(data.message);
@@ -91,4 +92,53 @@ async function updateProfile() {
     alert(data.message);
 }
 
-window.onload = loadPosts; // Load posts on page load
+async function addFriend() {
+    const email = document.getElementById('friend-email').value;
+    const response = await fetch('/api/friends/search', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+    if (data.friendId) {
+        const addResponse = await fetch('/api/friend/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ friendId: data.friendId })
+        });
+        const addData = await addResponse.json();
+        alert(addData.message);
+        loadFriends(); // Refresh friend list
+    } else {
+        alert('Friend not found');
+    }
+}
+
+async function loadFriends() {
+    const response = await fetch('/api/friends', {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
+    const friends = await response.json();
+    const friendList = document.getElementById('friend-list');
+    friendList.innerHTML = '';
+    friends.forEach(friend => {
+        const friendElement = document.createElement('div');
+        friendElement.innerText = friend.email;
+        friendList.appendChild(friendElement);
+    });
+}
+
+window.onload = () => {
+    loadPosts();
+    loadFriends(); // Load friends on page load
+};
