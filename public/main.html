@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Main Feed</title>
+</head>
+<body>
+    <div id="app">
+        <h1>Welcome to Your Feed</h1>
+        <div id="profile">
+            <h2>Your Profile</h2>
+            <input type="text" id="bio" placeholder="Bio">
+            <input type="file" id="profile-pic" accept="image/*">
+            <input type="file" id="cover-pic" accept="image/*">
+            <button onclick="updateProfile()">Update Profile</button>
+        </div>
+        <div id="posts"></div>
+        <div id="new-post">
+            <textarea id="post-content" placeholder="What's on your mind?"></textarea>
+            <button onclick="createPost()">Post</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
